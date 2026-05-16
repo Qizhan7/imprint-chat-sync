@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Imprint Chat Sync</h1>
+      <div class="status-dot" id="statusDot"></div>
+    </div>
+
+    <div class="section">
+      <div class="row">
+        <span>自动同步</span>
+        <label class="toggle">
+          <input type="checkbox" id="syncToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="row">
+        <span>同步间隔</span>
+        <select id="intervalSelect">
+          <option value="15">15 分钟</option>
+          <option value="30" selected>30 分钟</option>
+          <option value="60">60 分钟</option>
+        </select>
+      </div>
+      <div class="row range-row">
+        <span>每次最多同步</span>
+        <span class="value-display" id="maxConvDisplay">20</span>
+      </div>
+      <div class="range-wrap">
+        <input type="range" id="maxConvSlider" min="5" max="100" step="5" value="20">
+        <div class="range-ticks">
+          <span>5</span><span>50</span><span>100</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section stats">
+      <div class="stat-row">
+        <span class="label">Receiver</span>
+        <span id="receiverStatus" class="value">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">Claude.ai</span>
+        <span id="authStatus" class="value">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">上次同步</span>
+        <span id="lastSync" class="value">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">已同步对话</span>
+        <span id="convCount" class="value">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">已同步消息</span>
+        <span id="msgCount" class="value">0</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="syncNow" class="btn primary">手动同步</button>
+      <button id="syncAllBtn" class="btn secondary">同步全部历史</button>
+    </div>
+
+    <div class="hint">
+      💡 第一次同步建议保持默认 20，否则可能跑很久。后续可以拉大。
+    </div>
+
+    <details class="advanced">
+      <summary>高级设置</summary>
+      <div class="adv-body">
+        <div class="adv-row">
+          <label for="userNameInput">User 称呼</label>
+          <input type="text" id="userNameInput" placeholder="（留空使用服务端默认）" maxlength="30">
+        </div>
+        <div class="adv-row">
+          <label for="agentNameInput">Assistant 称呼</label>
+          <input type="text" id="agentNameInput" placeholder="（留空使用服务端默认）" maxlength="30">
+        </div>
+        <div class="adv-hint">
+          留空时不传 speaker 字段，由后端 IMPRINT_USER_NAME / IMPRINT_AGENT_NAME 决定。
+        </div>
+      </div>
+    </details>
+
+    <div id="logArea" class="log-area" style="display:none">
+      <div id="logContent"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
