@@ -16,7 +16,12 @@ async function claudeFetch(url) {
     throw new ApiError("Access denied (403)", 403);
   }
   if (response.status === 429) {
-    throw new ApiError("Rate limited (429)", 429);
+    const retryAfter = response.headers.get("retry-after");
+    const retryAfterSeconds = retryAfter ? Number(retryAfter) : NaN;
+    const retryAfterMs = Number.isFinite(retryAfterSeconds)
+      ? retryAfterSeconds * 1000
+      : null;
+    throw new ApiError("Rate limited (429)", 429, retryAfterMs);
   }
   if (!response.ok) {
     throw new ApiError(`HTTP ${response.status}`, response.status);
@@ -33,11 +38,23 @@ class AuthError extends Error {
 }
 
 class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, retryAfterMs = null) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.retryAfterMs = retryAfterMs;
   }
+}
+
+async function updateStatsFailure(result, message) {
+  const current = await chrome.storage.local.get("stats");
+  const stats = current.stats || {};
+  stats.lastSyncResult = result;
+  stats.lastError = message;
+  await chrome.storage.local.set({
+    stats,
+    lastSyncTime: new Date().toISOString(),
+  });
 }
 
 async function detectOrgId() {
@@ -301,6 +318,20 @@ async function sync() {
       } catch (e) {
         addLog(`  Error: ${e.message}`);
         if (e instanceof AuthError) throw e;
+        if (e instanceof ApiError && e.status === 429) {
+          const wait = e.retryAfterMs
+            ? ` Retry after ~${Math.ceil(e.retryAfterMs / 1000)}s.`
+            : " Will retry on the next alarm.";
+          addLog(`Rate limited by claude.ai; stopping this run.${wait}`);
+          stats.lastSyncResult = "rate_limited";
+          stats.lastError = e.message;
+          await chrome.storage.local.set({
+            conversations: convState,
+            stats,
+            lastSyncTime: new Date().toISOString(),
+          });
+          return { success: false, log, error: "rate_limited" };
+        }
       }
     }
 
@@ -323,10 +354,7 @@ async function sync() {
     addLog(`Sync failed: ${e.message}`);
 
     if (e instanceof AuthError) {
-      await chrome.storage.local.set({
-        "stats.lastSyncResult": "auth_error",
-        "stats.lastError": e.message,
-      });
+      await updateStatsFailure("auth_error", e.message);
 
       try {
         chrome.notifications.create("imprint-auth-expired", {
@@ -336,6 +364,10 @@ async function sync() {
           message: "请重新登录 claude.ai",
         });
       } catch {}
+    } else if (e instanceof ApiError && e.status === 429) {
+      await updateStatsFailure("rate_limited", e.message);
+    } else {
+      await updateStatsFailure("error", e.message);
     }
 
     return { success: false, log, error: e.message };

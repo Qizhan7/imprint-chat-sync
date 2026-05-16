@@ -13,6 +13,7 @@ claude.ai  ──[browser session]──>  this extension  ──[POST /api/inge
 - Uses **your own logged-in cookies** — no API key, no credentials stored
 - Runs as a periodic background alarm (default every 30 min) or on-demand
 - Tracks the last-synced leaf per conversation, so only new branches get re-ingested
+- Stops the current run on Claude.ai rate limits and retries on the next alarm
 - Posts to a local receiver only — nothing leaves your machine
 
 ## Install
@@ -64,6 +65,15 @@ Fill them in only if you want this specific channel (`claude.ai`) to use a diffe
 | `notifications` | Notify you when your claude.ai session expires |
 | `host: https://claude.ai/*` | Read your conversation list and message history |
 | `host: http://localhost:8001/*` | POST messages to your local imprint server |
+
+## Troubleshooting
+
+| Symptom | What to do |
+|---------|------------|
+| Receiver shows offline | Start `imprint-memory-receiver` and confirm `http://localhost:8001/api/health` returns `{ "ok": true }`. |
+| Claude.ai shows not logged in | Open `https://claude.ai` in the same Chrome profile and log in again. |
+| Sync says rate limited | Leave auto sync on; the next scheduled run will continue from the saved cursor. Lower **Max per sync** if it happens often. |
+| You changed the receiver port | The extension currently requests only `http://localhost:8001/*` for minimal permissions, so a different port requires editing `RECEIVER_BASE` and `manifest.json`. |
 
 ## Related
 
