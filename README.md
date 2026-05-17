@@ -29,7 +29,15 @@ claude.ai  ──[browser session]──>  this extension  ──[POST /api/inge
    ```
 3. Open Chrome → `chrome://extensions/` → enable **Developer mode** → click **Load unpacked** → select the cloned folder
 4. Log in to [claude.ai](https://claude.ai) in the same browser (so the extension can use your session)
-5. Click the extension icon → first sync should fire automatically; otherwise click **Manual sync**
+
+## First-time use
+
+1. **Open the extension popup** (click the icon in the toolbar).
+2. **Expand "Advanced settings" and fill in speaker names.** Recommended — these get written into `conversation_log.speaker` for every message and let you search by name later. If you leave them blank, the receiver falls back to whatever `IMPRINT_USER_NAME` / `IMPRINT_AGENT_NAME` is set to (default `User` / `Assistant`).
+3. **Click "Sync all history".** This is the one-shot full backfill — it temporarily lifts the look-back window to ~100 years and removes the per-run cap, so every conversation in your account gets pulled. It can take a while; just let it run.
+4. **Done.** Auto sync stays on in the background. From now on it runs every 30 min (configurable) and only pulls new branches in conversations you've actually used recently (default 7-day lookback, capped by **Max per sync** — 20 by default).
+
+If you only want to grab the last few days' chats and skip the historical backfill, use **Manual sync** instead of **Sync all history**.
 
 ## Settings
 
@@ -37,21 +45,11 @@ claude.ai  ──[browser session]──>  this extension  ──[POST /api/inge
 |---------|--------------|---------|
 | **Auto sync** | Toggle background polling | On |
 | **Interval** | How often the background alarm fires | 30 min |
-| **Max per sync** | Hard cap on conversations per run (slider 5–100) | 20 |
-| **User name** | Override `speaker` field for human messages | (empty) |
-| **Assistant name** | Override `speaker` field for assistant messages | (empty) |
+| **Max per sync** | Cap on conversations pulled per incremental run | 20 |
+| **User name** (Advanced) | Sets `speaker` for human messages | (empty) |
+| **Assistant name** (Advanced) | Sets `speaker` for assistant messages | (empty) |
 
-### First-sync tip
-
-The slider caps **how many conversations the extension pulls per run** — not how far back it looks. Keep it at the default **20** for the first sync, otherwise the initial pass can take a long time (each conversation is one Claude.ai API call plus a 500 ms delay to be polite to the server).
-
-After your history catches up, raise the slider — or use the **Sync all history** button, which temporarily extends the look-back window to ~100 years and pulls everything.
-
-### Speaker names (Advanced)
-
-Leave both fields empty for normal use — the receiver will fall back to its `IMPRINT_USER_NAME` / `IMPRINT_AGENT_NAME` environment variables (defaults: `User` / `Assistant`).
-
-Fill them in only if you want this specific channel (`claude.ai`) to use a different label than your other channels.
+The **Max per sync** slider only affects routine incremental syncs. The **Sync all history** button bypasses it (and the 7-day lookback) just for that one run, then restores your saved values.
 
 ## Privacy
 
@@ -123,7 +121,15 @@ claude.ai  ──[浏览器 session]──>  这个扩展  ──[POST /api/inge
    ```
 3. Chrome → `chrome://extensions/` → 打开**开发者模式** → **加载已解压的扩展程序** → 选刚克隆的文件夹
 4. 在同一个浏览器里登录 [claude.ai](https://claude.ai)
-5. 点扩展图标 → 第一次同步会自动开始；如果没有就点**手动同步**
+
+## 第一次怎么用
+
+1. **点扩展图标打开 popup**。
+2. **展开「高级设置」，填上称呼。** 推荐填——这两个名字会跟着每条消息写进 `conversation_log.speaker`，以后按人名搜/区分会用到。不填的话，服务端会用 `IMPRINT_USER_NAME` / `IMPRINT_AGENT_NAME` 环境变量（默认 `User` / `Assistant`）。
+3. **点「同步全部历史」**。这一次性把账号里所有对话都拉下来——按钮会临时把 7 天回溯放到 100 年、把单次条数限制取消，跑完自动恢复。可能跑挺久，让它跑就行。
+4. **完事**。后台自动同步保持开着，以后每 30 分钟跑一次（可调），只抓最近有更新的对话（默认 7 天内、每次最多 20 个）。
+
+如果你不想做全量回填，只想拉最近几天的，就用**手动同步**而不是**同步全部历史**。
 
 ## 设置
 
@@ -131,21 +137,11 @@ claude.ai  ──[浏览器 session]──>  这个扩展  ──[POST /api/inge
 |------|--------|------|
 | **自动同步** | 开关后台定时同步 | 开 |
 | **同步间隔** | 多久跑一次 | 30 分钟 |
-| **每次最多同步** | 一次最多拉几个对话（滑杆 5–100） | 20 |
-| **User 称呼** | 对话里你的名字 | （空，用服务端默认） |
-| **Assistant 称呼** | 对话里 AI 的名字 | （空，用服务端默认） |
+| **每次最多同步** | 每次增量同步最多拉几个对话 | 20 |
+| **User 称呼**（进阶） | 写进每条消息的 `speaker` 字段（你的名字） | （空） |
+| **Assistant 称呼**（进阶） | 写进每条消息的 `speaker` 字段（AI 的名字） | （空） |
 
-### 第一次同步建议
-
-滑杆控制的是**每次拉几个对话**，不是拉多远。第一次保持默认 **20** 就行，不然初始同步会很慢（每个对话要调一次 Claude.ai API + 500ms 礼貌延迟）。
-
-历史追上之后可以调大——或者点**同步全部历史**按钮，一次性把所有对话都拉回来。
-
-### 说话人名字（进阶）
-
-一般不用填。留空时服务端会用 `IMPRINT_USER_NAME` / `IMPRINT_AGENT_NAME` 环境变量的值（默认 `User` / `Assistant`）。
-
-只有当你想让 claude.ai 这个渠道用不同于其他渠道的名字标签时才需要填。
+**每次最多同步**滑杆只对日常的增量同步起作用。**同步全部历史**按钮那一次会绕过它（连同 7 天回溯一起），跑完恢复你设的值。
 
 ## 隐私
 

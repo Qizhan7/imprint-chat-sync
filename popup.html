@@ -68,22 +68,26 @@
     </div>
 
     <div class="hint">
-      💡 第一次同步建议保持默认 20，否则可能跑很久。后续可以拉大。
+      💡 <b>第一次用？</b><br>
+      ① 先展开下方「高级设置」填好称呼（推荐，否则旧对话 speaker 字段会留空）<br>
+      ② 点「同步全部历史」一次性拉全部对话（跑较久，耐心等）<br>
+      ③ 以后自动同步会按上方「每次最多同步」走，只抓增量
     </div>
 
     <details class="advanced">
-      <summary>高级设置</summary>
+      <summary>高级设置（建议第一次同步前填）</summary>
       <div class="adv-body">
         <div class="adv-row">
           <label for="userNameInput">User 称呼</label>
-          <input type="text" id="userNameInput" placeholder="（留空使用服务端默认）" maxlength="30">
+          <input type="text" id="userNameInput" placeholder="例如：Alice / 张三" maxlength="30">
         </div>
         <div class="adv-row">
           <label for="agentNameInput">Assistant 称呼</label>
-          <input type="text" id="agentNameInput" placeholder="（留空使用服务端默认）" maxlength="30">
+          <input type="text" id="agentNameInput" placeholder="例如：Claude / Aria" maxlength="30">
         </div>
         <div class="adv-hint">
-          留空时不传 speaker 字段，由后端 IMPRINT_USER_NAME / IMPRINT_AGENT_NAME 决定。
+          会跟着每条消息一起写进 conversation_log 的 speaker 字段，后续按人名搜索/区分会用到。<br>
+          留空则不传，后端用 IMPRINT_USER_NAME / IMPRINT_AGENT_NAME（默认 User / Assistant）。
         </div>
       </div>
     </details>
